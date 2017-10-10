@@ -54,12 +54,14 @@ public class ServerController {
 		if (disconnect) {
 			game.disconnect(player);
 		}
-		
-		// handle join
-		if (!game.started) {
+		else if (!game.started) {
 			game.join(player);
 		}
-
+		else {
+			// return null if third player is trying to join
+			return null;
+		}
+		
 		repository.save(game);
 		updateGameState(id, game);
 		
