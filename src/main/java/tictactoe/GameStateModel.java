@@ -46,7 +46,7 @@ public class GameStateModel {
 	}
 	
 	public void disconnect(String player) {
-		if (player.equals(player1) || player.equals(player2)) {
+		if (winner == null && player.equals(player1) || player.equals(player2)) {
 			disconnect = true;
 		}
 	}
