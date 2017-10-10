@@ -1,5 +1,9 @@
 This is a simple TicTacToe server using Spring (Java), Websockets, and MongoDB.
 
+Check it out at: http://tictactoe.ludeman.com
+
+For testing, you can always play using two separate tabs / windows instead of requiring an extra person.
+
 # Stack Overview
 ### Client / Webpage
 Client (webpage) uses JQuery for basic page changes, and SockJS and STOMP libraries to handle the websocket during gameplay.
