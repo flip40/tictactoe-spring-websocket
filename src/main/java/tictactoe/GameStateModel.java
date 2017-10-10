@@ -45,6 +45,12 @@ public class GameStateModel {
 		this.started = true;
 	}
 	
+	public void disconnect(String player) {
+		if (player.equals(player1) || player.equals(player2)) {
+			disconnect = true;
+		}
+	}
+	
 	public void makeMove(int x, int y, String player) {
 		// invalid move
 		if (x < 0 || x >= 3) return;

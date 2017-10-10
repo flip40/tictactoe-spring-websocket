@@ -36,10 +36,12 @@ function disconnect() {
 	
 	if (gid != null) {
 		$.ajax({
-			url: "/ttt/disconnect/",
-			type: "get",
+			url: "/ttt/game",
+			type: "patch",
 			data: {
-				id: gid
+				id: gid,
+				player: uid,
+				disconnect: true
 			}
 		});
 	}
@@ -63,9 +65,9 @@ function refresh() {
 function create() {
 	var name = $("#gamename").val() || undefined;
 	
-	$.ajax({
-		url: "/ttt/create/",
-		type: "get",
+	$.post({
+		url: "/ttt/game",
+//		type: "get",
 		data: { 
 			player: uid,
 			name: name
@@ -87,8 +89,8 @@ function create() {
 
 function join(id) {
 	$.ajax({
-		url: "/ttt/join/",
-		type: "get",
+		url: "/ttt/game",
+		type: "patch",
 		data: {
 			player: uid,
 			id: id
