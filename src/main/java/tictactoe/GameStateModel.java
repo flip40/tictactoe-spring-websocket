@@ -30,6 +30,7 @@ public class GameStateModel {
 	public GameStateModel(String player1, String name) {
 		this.name = name;
 		this.player1 = player1;
+		this.player2 = null;
 		this.currentPlayer = player1;
 		this.winner = null;
 		this.started = false;
@@ -41,12 +42,14 @@ public class GameStateModel {
 	}
 	
 	public void join(String player2) {
-		this.player2 = player2;
-		this.started = true;
+		if (this.player2 == null) {
+			this.player2 = player2;
+			this.started = true;
+		}
 	}
 	
 	public void disconnect(String player) {
-		if (winner == null && player.equals(player1) || player.equals(player2)) {
+		if (winner == null && (player.equals(player1) || player.equals(player2))) {
 			disconnect = true;
 		}
 	}
