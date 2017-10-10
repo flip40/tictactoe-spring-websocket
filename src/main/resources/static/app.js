@@ -54,10 +54,15 @@ function sendMove(x, y) {
 function refresh() {
 	$.getJSON("/ttt/games/", function(data){
 		$("#games").empty();
-		
-		for (var game in data) {
-			game = data[game];
-			$("#games").append("<tr><td><button id=\"" + game.id + "\" class=\"btn btn-primary btn-sm\">Join</button>&nbsp;" + game.name  + "</td></tr>");
+				
+		if (data.length > 0) {
+			for (var game in data) {
+				game = data[game];
+				$("#games").append("<tr><td><button id=\"" + game.id + "\" class=\"btn btn-primary btn-sm\">Join</button>&nbsp;" + game.name  + "</td></tr>");
+			}
+		}
+		else {
+			$("#games").append("<tr><td>There are no games currently available. Try creating your own!</td></tr>");
 		}
 	});
 }
@@ -67,7 +72,6 @@ function create() {
 	
 	$.post({
 		url: "/ttt/game",
-//		type: "get",
 		data: { 
 			player: uid,
 			name: name
