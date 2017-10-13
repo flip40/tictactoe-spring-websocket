@@ -20,15 +20,10 @@ table#board td.h {
 	border-bottom: 1px solid #000;
 }
 
-div#tictactoe-container {
-	display: inline-block;
-	text-align: center;
-}
-
-span#status {
+span.status {
 	font-size: 24px;
 }
 
-.float-right {
-	float: right;
+.centered {
+	margin: 0 auto;
 }

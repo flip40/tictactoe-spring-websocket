@@ -46,7 +46,8 @@ public class ServerController {
 	public GameStateModel updateGame(
 			@RequestParam(value = "id") String id,
 			@RequestParam(value = "player") String player,
-			@RequestParam(value = "disconnect", required = false) boolean disconnect) {
+			@RequestParam(value = "disconnect", required = false) boolean disconnect,
+			@RequestParam(value = "rematch", required = false) boolean rematch) {
 		
 		GameStateModel game = repository.findById(id);
 		
@@ -54,7 +55,10 @@ public class ServerController {
 		if (disconnect) {
 			game.disconnect(player);
 		}
-		else if (!game.started) {
+		else if (rematch) {
+			game.rematch(player);
+		}
+		else if (!game.started && !game.disconnect) {
 			game.join(player);
 		}
 		else {

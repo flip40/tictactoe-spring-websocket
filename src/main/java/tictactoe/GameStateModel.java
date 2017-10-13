@@ -17,6 +17,7 @@ public class GameStateModel {
 	
 	public String[][] board = new String[3][3];
 	
+	private String startingPlayer;
 	private String currentPlayer;
 	
 	public String winner;
@@ -31,14 +32,19 @@ public class GameStateModel {
 		this.name = name;
 		this.player1 = player1;
 		this.player2 = null;
-		this.currentPlayer = player1;
+		this.startingPlayer = player1;
+		this.currentPlayer = startingPlayer;
 		this.winner = null;
 		this.started = false;
 		this.disconnect = false;
 		this.draw = false;
 		
 		// initialize board
-		for(String[] row : board) Arrays.fill(row, "");
+		resetBoard();
+	}
+	
+	public String getStartingPlayer() {
+		return startingPlayer.equals(player1) ? "X" : "O";
 	}
 	
 	public void join(String player2) {
@@ -49,8 +55,19 @@ public class GameStateModel {
 	}
 	
 	public void disconnect(String player) {
-		if (winner == null && (player.equals(player1) || player.equals(player2))) {
+		if (isValidPlayer(player)) {
 			disconnect = true;
+		}
+	}
+	
+	public void rematch(String player) {
+		if (!disconnect && gameOver() && isValidPlayer(player)) {
+			winner = null;
+			draw = false;
+			startingPlayer = startingPlayer.equals(player1) ? player2 : player1;
+			currentPlayer = startingPlayer;
+			
+			resetBoard();
 		}
 	}
 	
@@ -60,9 +77,9 @@ public class GameStateModel {
 		if (y < 0 || y >= 3) return;
 		
 		// invalid player
-		if (!player.equals(player1) && !player.equals(player2)) return;
+		if (!isValidPlayer(player)) return;
 		
-		if (started && !disconnect && !draw && winner == null
+		if (started && !disconnect && !gameOver()
 				&& currentPlayer.equals(player) && board[x][y].equals("")) {
 			board[x][y] = player.equals(player1) ? "X" : "O";
 			if (checkForWinner("X")) winner = player1;
@@ -118,6 +135,10 @@ public class GameStateModel {
 		draw = Arrays.stream(board).flatMap(x -> Arrays.stream(x)).noneMatch(x -> x.equals(""));
 	}
 	
+	private void resetBoard() {
+		for(String[] row : board) Arrays.fill(row, "");
+	}
+	
 	private void swapCurrentPlayer() {
 		if (currentPlayer.equals(player1)) {
 			currentPlayer = player2;
@@ -126,7 +147,15 @@ public class GameStateModel {
 			currentPlayer = player1;
 		}
 	}
-
+	
+	private boolean isValidPlayer(String player) {
+		return player.equals(player1) || player.equals(player2);
+	}
+	
+	private boolean gameOver() {
+		return winner != null || draw;
+	}
+	
 	@Override
 	public String toString() {
 		return String.format(

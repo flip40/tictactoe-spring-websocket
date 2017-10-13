@@ -4,15 +4,10 @@ var gid = null;
 var gamestate = null;
 var player = "X";
 
-function setConnected(connected) {
-	$("#disconnect").prop("disabled", !connected);
-}
-
 function connect() {
 	var socket = new SockJS('/ttt-websocket');
 	stompClient = Stomp.over(socket);
 	stompClient.connect({}, function (frame) {
-		setConnected(true);
 		console.log('Connected: ' + frame);
 		stompClient.subscribe('/ttt/gamestate/' + gid, function (data) {
 			updateGamestate(JSON.parse(data.body));
@@ -24,13 +19,12 @@ function disconnect() {
 	if (stompClient !== null) {
 		stompClient.disconnect();
 	}
-	setConnected(false);
 	console.log("Disconnected");
 	
-	refresh();
+	$('#disconnectModal').modal('hide');
 	
-	$("#menu").removeClass('hidden');
-	$("#tictactoe").addClass('hidden');
+	$("#menu").show();
+	$("#tictactoe").hide();
 	
 	cleanGamestate();
 	
@@ -42,6 +36,20 @@ function disconnect() {
 				id: gid,
 				player: uid,
 				disconnect: true
+			}
+		}).done(refresh);
+	}
+}
+
+function rematch() {
+	if (gamestate.winner || gamestate.draw) {
+		$.ajax({
+			url: "/ttt/game",
+			type: "patch",
+			data: {
+				id: gid,
+				player: uid,
+				rematch: true
 			}
 		});
 	}
@@ -58,7 +66,7 @@ function refresh() {
 		if (data.length > 0) {
 			for (var game in data) {
 				game = data[game];
-				$("#games").append("<tr><td><button id=\"" + game.id + "\" class=\"btn btn-primary btn-sm\">Join</button>&nbsp;" + game.name  + "</td></tr>");
+				$("#games").append("<tr><td><button id=\"" + game.id + "\" class=\"btn btn-success btn-sm\">Join</button>&nbsp;" + game.name  + "</td></tr>");
 			}
 		}
 		else {
@@ -69,6 +77,8 @@ function refresh() {
 
 function create() {
 	var name = $("#gamename").val() || undefined;
+	
+	$('#createGameModal').modal('hide');
 	
 	$.post({
 		url: "/ttt/game",
@@ -81,8 +91,8 @@ function create() {
 		
 		player = "X";
 		
-		$("#menu").addClass('hidden');
-		$("#tictactoe").removeClass('hidden');
+		$("#menu").hide();
+		$("#tictactoe").show();
 		
 		gid = data.id;
 		connect();
@@ -101,7 +111,7 @@ function join(id) {
 		}
 	}).done(function(data) {
 		if (!data) {
-			alert("Game is already full!", refresh);
+			alert("Game is no longer available.", refresh);
 			refresh();
 			return;
 		}
@@ -110,8 +120,8 @@ function join(id) {
 		
 		player = "O";
 		
-		$("#menu").addClass('hidden');
-		$("#tictactoe").removeClass('hidden');
+		$("#menu").hide();
+		$("#tictactoe").show();
 		
 		gid = data.id;
 		connect();
@@ -123,8 +133,14 @@ function join(id) {
 function updateGamestate(data) {
 	gamestate = data;
 	
+	$("#rematch").prop("disabled", !canRematch());
+	
 	gameStatus();
 	drawBoard();
+}
+
+function canRematch() {
+	return !gamestate.disconnect && (gamestate.winner || gamestate.draw)
 }
 
 function cleanGamestate() {
@@ -146,27 +162,42 @@ function drawBoard() {
 }
 
 function gameStatus() {
-	var status = "Both players are here! You are '" + player + "'.";
+	var status = "";
+	var status2 = "";
 	
+	// status
 	if (!gamestate.started) {
 		status = "Waiting for second player...";
 	}
 	else if (gamestate.disconnect) {
 		status = "Other player has disconnected!"
 	}
+	else {
+		status = "Both players are here! You are '" + player + "'."
+	}
+	
+	// status2
+	
+	if (gamestate.started && !gamestate.winner && !gamestate.draw) {
+		status2 = "'" + gamestate.startingPlayer + "' goes first.";
+	}
 	else if (gamestate.winner) {
 		if (gamestate.winner == uid) {
-			status = "You win!";
+			status2 = "You win!";
 		}
 		else {
-			status = "You lost!";
+			status2 = "You lost!";
 		}
 	}
 	else if (gamestate.draw) {
-		status = "It's a draw!"
+		status2 = "It's a draw!"
+	}
+	else {
+		status2 = "";
 	}
 	
 	$("#status").text(status);
+	$("#status2").text(status2);
 }
 
 function randString(length) {
@@ -185,9 +216,12 @@ $(function () {
 		e.preventDefault();
 	});
 	
+	$("#tictactoe").hide();
+	
 	$("#refresh").click(function() { refresh(); });
 	$("#create").click(function() { create(); });
-	$( "#disconnect" ).click(function() { disconnect(); });
+	$("#disconnect").click(function() { disconnect(); });
+	$("#rematch").click(function() { rematch(); });
 	
 	$("#games").on( "click", "button", function() {
 		join( $(this).attr('id') );
