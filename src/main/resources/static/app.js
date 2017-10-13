@@ -12,6 +12,7 @@ function connect() {
 		stompClient.subscribe('/ttt/gamestate/' + gid, function (data) {
 			updateGamestate(JSON.parse(data.body));
 		});
+		stompClient.send("/ttt/join/" + gid, {}, JSON.stringify({'player': uid}));
 	});
 }
 
@@ -211,6 +212,14 @@ function randString(length) {
 	return text;
 }
 
+var unloadCalled = false;
+function doUnload() {
+	if (!unloadCalled) {
+		unloadCalled = true;
+		disconnect();
+	}
+};
+
 $(function () {
 	$("form").on('submit', function (e) {
 		e.preventDefault();
@@ -233,6 +242,3 @@ $(function () {
 	
 	refresh();
 });
-
-
-window.onbeforeunload = disconnect;

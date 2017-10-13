@@ -15,7 +15,7 @@ public class ServerController {
 
 	@Autowired
 	private GameStateRepository repository;
-	
+
 	@Autowired
 	private SimpMessagingTemplate template;
 
@@ -23,11 +23,11 @@ public class ServerController {
 	public List<AvailableGame> getServers() {
 		List<AvailableGame> available = new ArrayList<AvailableGame>();
 		List<GameStateModel> games = repository.findByStartedAndDisconnect(false, false);
-		
+
 		for(GameStateModel game : games) {
 			available.add(new AvailableGame(game.id, game.name));
 		}
-		
+
 		return available;
 	}
 
@@ -35,10 +35,10 @@ public class ServerController {
 	public GameStateModel createGame(
 			@RequestParam(value = "player") String player,
 			@RequestParam(value = "name", defaultValue="A TicTacToe Game") String name) {
-		
+
 		GameStateModel game = new GameStateModel(player, name);
 		repository.save(game);
-		
+
 		return game;
 	}
 
@@ -48,9 +48,9 @@ public class ServerController {
 			@RequestParam(value = "player") String player,
 			@RequestParam(value = "disconnect", required = false) boolean disconnect,
 			@RequestParam(value = "rematch", required = false) boolean rematch) {
-		
+
 		GameStateModel game = repository.findById(id);
-		
+
 		// handle disconnect
 		if (disconnect) {
 			game.disconnect(player);
@@ -65,16 +65,16 @@ public class ServerController {
 			// return null if third player is trying to join
 			return null;
 		}
-		
+
 		repository.save(game);
 		updateGameState(id, game);
-		
+
 		return game;
 	}
 
 	// push new game state to websocket
 	private void updateGameState(String id, GameStateModel game) {
-		this.template.convertAndSend("/ttt/gamestate/" + id, game);
+		template.convertAndSend("/ttt/gamestate/" + id, game);
 	}
 
 }

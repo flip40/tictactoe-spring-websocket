@@ -8,5 +8,6 @@ public interface GameStateRepository extends MongoRepository<GameStateModel, Str
 
 	public GameStateModel findById(String id);
 	public List<GameStateModel> findByStartedAndDisconnect(boolean started, boolean disconnect);
+	public GameStateModel findTopByPlayer1IdOrPlayer2IdOrderByCreatedDesc(String player1Id, String player2Id);
 
 }
