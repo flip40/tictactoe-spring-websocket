@@ -20,7 +20,7 @@ public class ServerController {
 	private SimpMessagingTemplate template;
 
 	@RequestMapping(method = RequestMethod.GET, value = "/ttt/games")
-	public List<AvailableGame> getServers() {
+	public List<AvailableGame> getGames() {
 		List<AvailableGame> available = new ArrayList<AvailableGame>();
 		List<GameStateModel> games = repository.findByStartedAndDisconnect(false, false);
 
@@ -42,34 +42,68 @@ public class ServerController {
 		return game;
 	}
 
-	@RequestMapping(method = RequestMethod.PATCH, value = "/ttt/game")
-	public GameStateModel updateGame(
+	// Join
+	@RequestMapping(method = RequestMethod.PATCH, value = "/ttt/game", params = {"id", "player"})
+	public GameStateModel joinGame(
 			@RequestParam(value = "id") String id,
-			@RequestParam(value = "player") String player,
-			@RequestParam(value = "disconnect", required = false) boolean disconnect,
-			@RequestParam(value = "rematch", required = false) boolean rematch) {
+			@RequestParam(value = "player") String player
+			) {
 
 		GameStateModel game = repository.findById(id);
 
-		// handle disconnect
+		if (!game.started && !game.disconnect) {
+			game.join(player);
+
+			repository.save(game);
+			updateGameState(id, game);
+
+			return game;
+		}
+
+		// return null if third player is trying to join or player left
+		return null;
+	}
+
+	// Disconnect
+	@RequestMapping(method = RequestMethod.PATCH, value = "/ttt/game", params = {"id", "player", "disconnect"})
+	public GameStateModel disconnectGame(
+			@RequestParam(value = "id") String id,
+			@RequestParam(value = "player") String player,
+			@RequestParam(value = "disconnect") boolean disconnect) {
+
+		GameStateModel game = repository.findById(id);
+
 		if (disconnect) {
 			game.disconnect(player);
+			repository.save(game);
+
+			updateGameState(id, game);
+
+			return game;
 		}
-		else if (rematch) {
+
+		return null;
+	}
+
+	// Rematch
+	@RequestMapping(method = RequestMethod.PATCH, value = "/ttt/game", params = {"id", "player", "rematch"})
+	public GameStateModel rematchGame(
+			@RequestParam(value = "id") String id,
+			@RequestParam(value = "player") String player,
+			@RequestParam(value = "rematch") boolean rematch) {
+
+		GameStateModel game = repository.findById(id);
+
+		if (rematch) {
 			game.rematch(player);
-		}
-		else if (!game.started && !game.disconnect) {
-			game.join(player);
-		}
-		else {
-			// return null if third player is trying to join
-			return null;
+
+			repository.save(game);
+			updateGameState(id, game);
+
+			return game;
 		}
 
-		repository.save(game);
-		updateGameState(id, game);
-
-		return game;
+		return null;
 	}
 
 	// push new game state to websocket
